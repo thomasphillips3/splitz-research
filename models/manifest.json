@@ -1,0 +1,69 @@
+{
+  "version": 1,
+  "families": [
+    {
+      "id": "open-unmix",
+      "displayName": "Open-Unmix",
+      "description": "4-stem separation (vocals, drums, bass, other). Good quality, ~60 MB total.",
+      "stemCount": 4,
+      "models": [
+        {
+          "modelId": "open-unmix-vocals-fp16",
+          "stemTarget": "vocals",
+          "version": "1.0.0",
+          "quantization": "fp16",
+          "downloadUrl": "https://thomasphillips3.github.io/splitz-research/models/open-unmix-vocals-fp16.onnx",
+          "fileSizeMb": 34.0,
+          "sha256": "b85547801590f8b55245723d7029787442ff2a139fbd6cd3cdd2119c3bbfddbc",
+          "minRamMb": 1024,
+          "nFft": 4096,
+          "hopLength": 1024,
+          "sampleRate": 44100,
+          "nbFrames": 431
+        },
+        {
+          "modelId": "open-unmix-drums-fp16",
+          "stemTarget": "drums",
+          "version": "1.0.0",
+          "quantization": "fp16",
+          "downloadUrl": "https://thomasphillips3.github.io/splitz-research/models/open-unmix-drums-fp16.onnx",
+          "fileSizeMb": 34.0,
+          "sha256": "431d4c58980539cc4e7749af79e63ae9f58256ebe8eca9f552db65f9bda81048",
+          "minRamMb": 1024,
+          "nFft": 4096,
+          "hopLength": 1024,
+          "sampleRate": 44100,
+          "nbFrames": 431
+        },
+        {
+          "modelId": "open-unmix-bass-fp16",
+          "stemTarget": "bass",
+          "version": "1.0.0",
+          "quantization": "fp16",
+          "downloadUrl": "https://thomasphillips3.github.io/splitz-research/models/open-unmix-bass-fp16.onnx",
+          "fileSizeMb": 34.0,
+          "sha256": "89f4244c614e975b5c3b0f5df0598990a44231b5f3612b552f309d12f6453a94",
+          "minRamMb": 1024,
+          "nFft": 4096,
+          "hopLength": 1024,
+          "sampleRate": 44100,
+          "nbFrames": 431
+        },
+        {
+          "modelId": "open-unmix-other-fp16",
+          "stemTarget": "other",
+          "version": "1.0.0",
+          "quantization": "fp16",
+          "downloadUrl": "https://thomasphillips3.github.io/splitz-research/models/open-unmix-other-fp16.onnx",
+          "fileSizeMb": 34.0,
+          "sha256": "099162e3f7a30fb606342ae733e78c507c47447178065a48a8cb0c5fdbfd363e",
+          "minRamMb": 1024,
+          "nFft": 4096,
+          "hopLength": 1024,
+          "sampleRate": 44100,
+          "nbFrames": 431
+        }
+      ]
+    }
+  ]
+}

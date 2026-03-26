@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Splitz Research — Model Distribution</title>
+  <style>
+    body { font-family: sans-serif; max-width: 800px; margin: 40px auto; padding: 0 20px; }
+    h1 { font-size: 1.5rem; }
+    table { border-collapse: collapse; width: 100%; margin-top: 1rem; }
+    th, td { text-align: left; padding: 8px 12px; border-bottom: 1px solid #ddd; }
+    th { background: #f4f4f4; }
+    a { color: #0066cc; }
+    code { background: #f4f4f4; padding: 2px 6px; border-radius: 3px; font-size: 0.9em; }
+  </style>
+</head>
+<body>
+  <h1>Splitz Research — On-Device Model Distribution</h1>
+  <p>
+    ONNX models for on-device stem separation in the
+    <a href="https://github.com/thomasphillips3/splitz">Splitz Android app</a>.
+  </p>
+  <h2>Manifest</h2>
+  <p><a href="models/manifest.json"><code>models/manifest.json</code></a></p>
+  <h2>Models (Open-Unmix FP16)</h2>
+  <table>
+    <thead>
+      <tr><th>Stem</th><th>File</th><th>Size</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Vocals</td>
+        <td><a href="models/open-unmix-vocals-fp16.onnx">open-unmix-vocals-fp16.onnx</a></td>
+        <td>34 MB</td>
+      </tr>
+      <tr>
+        <td>Drums</td>
+        <td><a href="models/open-unmix-drums-fp16.onnx">open-unmix-drums-fp16.onnx</a></td>
+        <td>34 MB</td>
+      </tr>
+      <tr>
+        <td>Bass</td>
+        <td><a href="models/open-unmix-bass-fp16.onnx">open-unmix-bass-fp16.onnx</a></td>
+        <td>34 MB</td>
+      </tr>
+      <tr>
+        <td>Other</td>
+        <td><a href="models/open-unmix-other-fp16.onnx">open-unmix-other-fp16.onnx</a></td>
+        <td>34 MB</td>
+      </tr>
+    </tbody>
+  </table>
+</body>
+</html>
