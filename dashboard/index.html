@@ -288,7 +288,7 @@
     async function init() {
       let data;
       try {
-        const resp = await fetch('../results/latest.json');
+        const resp = await fetch('results/latest.json');
         if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
         data = await resp.json();
       } catch (err) {
