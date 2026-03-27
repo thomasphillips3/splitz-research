@@ -16,49 +16,49 @@
   },
   "timings": {
     "load_audio_ms": 0.0,
-    "model_load_ms": 1942.145245000006,
-    "inference_total_ms": 8943.555540000005,
-    "inference_per_chunk_ms": 4471.777770000002,
-    "total_ms": 11994.142960999994
+    "model_load_ms": 3306.507088999993,
+    "inference_total_ms": 9593.047078999987,
+    "inference_per_chunk_ms": 4796.523539499994,
+    "total_ms": 14344.039658
   },
   "metrics": {
     "vocals": {
-      "energy_ratio": 0.38081026878631513,
-      "sdr": 3.2570398354849845,
+      "energy_ratio": 0.3808102651500507,
+      "sdr": 3.2570398393104543,
       "sir": Infinity,
-      "sar": 3.2570398354849845
+      "sar": 3.2570398393104543
     },
     "drums": {
-      "energy_ratio": 0.0018901099083586447,
-      "sdr": -4.3912823303121575,
+      "energy_ratio": 0.0018901100289812724,
+      "sdr": -4.391282730670502,
       "sir": Infinity,
-      "sar": -4.3912823303121575
+      "sar": -4.391282730670502
     },
     "bass": {
-      "energy_ratio": 0.39685762857102724,
-      "sdr": 13.84098895069042,
+      "energy_ratio": 0.39685763002162616,
+      "sdr": 13.826553186994158,
       "sir": Infinity,
-      "sar": 13.84098895069042
+      "sar": 13.826553186994158
     },
     "other": {
-      "energy_ratio": 0.06641995069887147,
-      "sdr": 0.5472896026365979,
+      "energy_ratio": 0.06641995107703408,
+      "sdr": 0.547289545898664,
       "sir": Infinity,
-      "sar": 0.5472896026365979
+      "sar": 0.547289545898664
     },
     "cross_stem_leakage": {
-      "bass/drums": 0.000606553163442963,
-      "bass/other": 0.01907214353906862,
-      "bass/vocals": 0.0038416701419670914,
-      "drums/other": 0.015559684362329566,
-      "drums/vocals": 0.010330152237111595,
-      "other/vocals": 0.04202215092754115
+      "bass/drums": 0.0006065528763388649,
+      "bass/other": 0.01907214489077373,
+      "bass/vocals": 0.003841670133545558,
+      "drums/other": 0.015559684612435606,
+      "drums/vocals": 0.010330152586646922,
+      "other/vocals": 0.04202215521263908
     },
-    "reconstruction_error": 0.31975149979323686
+    "reconstruction_error": 0.31975149984126633
   },
   "n_chunks": 2,
   "metadata": {
-    "timestamp": "2026-03-27T06:49:56.676564+00:00",
+    "timestamp": "2026-03-27T17:45:10.986022+00:00",
     "platform": {
       "system": "Linux",
       "release": "6.17.0-1008-azure",

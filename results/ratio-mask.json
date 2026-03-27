@@ -16,10 +16,10 @@
   },
   "timings": {
     "load_audio_ms": 0.0,
-    "model_load_ms": 2827.0149080000097,
-    "inference_total_ms": 8312.623554000013,
-    "inference_per_chunk_ms": 4156.311777000006,
-    "total_ms": 12221.178964000004
+    "model_load_ms": 2511.1032420000042,
+    "inference_total_ms": 8608.967218000016,
+    "inference_per_chunk_ms": 4304.483609000008,
+    "total_ms": 12253.922932999998
   },
   "metrics": {
     "vocals": {
@@ -58,10 +58,10 @@
   },
   "n_chunks": 2,
   "metadata": {
-    "timestamp": "2026-03-27T06:50:01.893525+00:00",
+    "timestamp": "2026-03-27T17:45:17.700320+00:00",
     "platform": {
       "system": "Linux",
-      "release": "6.14.0-1017-azure",
+      "release": "6.17.0-1008-azure",
       "machine": "x86_64",
       "python": "3.11.15"
     },
