@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Splitz Engine Benchmark</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    :root {
+      --studio-black: #0a0a0f;
+      --studio-surface: #12121a;
+      --studio-surface-elevated: #1a1a26;
+      --studio-surface-variant: #222233;
+      --electric-cyan: #00e5ff;
+      --electric-cyan-muted: #00b8d4;
+      --electric-cyan-dim: #006978;
+      --signal-magenta: #ff2d78;
+      --signal-magenta-dim: #991b49;
+      --warm-amber: #ffab00;
+      --warm-amber-dim: #996600;
+      --purple-accent: #7c4dff;
+      --text-primary: #e8e8f0;
+      --text-secondary: #a0a0b8;
+      --text-tertiary: #606078;
+      --cyan-glow: rgba(0, 229, 255, 0.25);
+      --magenta-glow: rgba(255, 45, 120, 0.25);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: var(--studio-black);
+      color: var(--text-primary);
+      font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', 'JetBrains Mono', monospace;
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem;
+    }
+
+    /* --- Header --- */
+    .header {
+      text-align: center;
+      margin-bottom: 3rem;
+      padding-bottom: 2rem;
+      border-bottom: 1px solid var(--studio-surface-variant);
+    }
+
+    .header h1 {
+      font-size: 2rem;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      background: linear-gradient(135deg, var(--electric-cyan), var(--signal-magenta));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 0.5rem;
+    }
+
+    .header .subtitle {
+      color: var(--text-tertiary);
+      font-size: 0.8rem;
+      letter-spacing: 0.02em;
+    }
+
+    .header .subtitle code {
+      color: var(--electric-cyan-muted);
+      background: var(--studio-surface);
+      padding: 0.15em 0.5em;
+      border-radius: 4px;
+      font-size: 0.75rem;
+    }
+
+    /* --- Sections --- */
+    .section {
+      background: var(--studio-surface);
+      border: 1px solid var(--studio-surface-variant);
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .section h2 {
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--text-secondary);
+      margin-bottom: 1.25rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .section h2::before {
+      content: '';
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--electric-cyan);
+      box-shadow: 0 0 6px var(--electric-cyan);
+    }
+
+    .chart-container {
+      position: relative;
+      width: 100%;
+      max-height: 400px;
+    }
+
+    /* --- Table --- */
+    .table-wrapper {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+    }
+
+    thead th {
+      background: var(--studio-surface-elevated);
+      color: var(--text-secondary);
+      font-weight: 600;
+      text-transform: uppercase;
+      font-size: 0.7rem;
+      letter-spacing: 0.08em;
+      padding: 0.75rem 1rem;
+      text-align: left;
+      cursor: pointer;
+      user-select: none;
+      white-space: nowrap;
+      border-bottom: 2px solid var(--studio-surface-variant);
+      transition: color 0.15s;
+    }
+
+    thead th:hover {
+      color: var(--electric-cyan);
+    }
+
+    thead th.sorted-asc::after { content: ' \u25B2'; color: var(--electric-cyan); }
+    thead th.sorted-desc::after { content: ' \u25BC'; color: var(--electric-cyan); }
+
+    tbody tr {
+      border-bottom: 1px solid var(--studio-surface-variant);
+      transition: background 0.15s;
+    }
+
+    tbody tr:hover {
+      background: var(--studio-surface-elevated);
+    }
+
+    tbody td {
+      padding: 0.65rem 1rem;
+      white-space: nowrap;
+    }
+
+    td.name-cell {
+      color: var(--electric-cyan);
+      font-weight: 600;
+    }
+
+    td.best {
+      color: var(--warm-amber);
+      font-weight: 700;
+    }
+
+    /* --- Leakage --- */
+    .leakage-badge {
+      display: inline-block;
+      padding: 0.25rem 0.75rem;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 600;
+    }
+
+    .leakage-good {
+      background: rgba(0, 229, 255, 0.15);
+      color: var(--electric-cyan);
+      border: 1px solid var(--electric-cyan-dim);
+    }
+
+    .leakage-warn {
+      background: rgba(255, 171, 0, 0.15);
+      color: var(--warm-amber);
+      border: 1px solid var(--warm-amber-dim);
+    }
+
+    .leakage-bad {
+      background: rgba(255, 45, 120, 0.15);
+      color: var(--signal-magenta);
+      border: 1px solid var(--signal-magenta-dim);
+    }
+
+    /* --- Empty state --- */
+    .empty-state {
+      text-align: center;
+      padding: 4rem 2rem;
+      color: var(--text-tertiary);
+    }
+
+    .empty-state .icon {
+      font-size: 3rem;
+      margin-bottom: 1rem;
+      opacity: 0.4;
+    }
+
+    .empty-state p {
+      font-size: 1rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .empty-state .hint {
+      font-size: 0.8rem;
+      color: var(--text-tertiary);
+    }
+
+    /* --- Footer --- */
+    .footer {
+      text-align: center;
+      padding: 2rem 0;
+      color: var(--text-tertiary);
+      font-size: 0.75rem;
+      border-top: 1px solid var(--studio-surface-variant);
+    }
+
+    .footer a {
+      color: var(--electric-cyan-muted);
+      text-decoration: none;
+    }
+
+    .footer a:hover {
+      color: var(--electric-cyan);
+      text-decoration: underline;
+    }
+
+    /* --- Responsive --- */
+    @media (max-width: 768px) {
+      .container { padding: 1rem; }
+      .header h1 { font-size: 1.4rem; }
+      .section { padding: 1rem; }
+      table { font-size: 0.75rem; }
+      thead th, tbody td { padding: 0.5rem 0.6rem; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header class="header">
+      <h1>Splitz Engine Benchmark</h1>
+      <div class="subtitle" id="subtitle">Loading results...</div>
+    </header>
+
+    <div id="content">
+      <!-- Populated by JS -->
+    </div>
+
+    <footer class="footer">
+      Powered by Splitz Research &bull;
+      <a href="https://github.com/thomasphillips3/splitz-research" target="_blank" rel="noopener">View on GitHub</a>
+    </footer>
+  </div>
+
+  <script>
+    // --- Color palette ---
+    const COLORS = {
+      vocals: '#00e5ff',
+      drums: '#ff2d78',
+      bass: '#ffab00',
+      other: '#7c4dff',
+    };
+
+    const STEM_ORDER = ['vocals', 'drums', 'bass', 'other'];
+
+    // --- Chart.js global defaults ---
+    Chart.defaults.color = '#a0a0b8';
+    Chart.defaults.borderColor = '#222233';
+    Chart.defaults.font.family = "'SF Mono', 'Fira Code', monospace";
+    Chart.defaults.font.size = 11;
+
+    // --- Main ---
+    async function init() {
+      let data;
+      try {
+        const resp = await fetch('../results/latest.json');
+        if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+        data = await resp.json();
+      } catch (err) {
+        showEmpty();
+        return;
+      }
+
+      if (!data.experiments || data.experiments.length === 0) {
+        showEmpty();
+        return;
+      }
+
+      updateSubtitle(data);
+      renderDashboard(data);
+    }
+
+    function showEmpty() {
+      document.getElementById('subtitle').textContent = '';
+      document.getElementById('content').innerHTML = `
+        <div class="empty-state">
+          <div class="icon">&#9881;</div>
+          <p>No results yet</p>
+          <p class="hint">Run the benchmark pipeline to generate results/latest.json</p>
+        </div>
+      `;
+    }
+
+    function updateSubtitle(data) {
+      const sha = data.commit ? data.commit.substring(0, 8) : 'unknown';
+      const ts = data.timestamp
+        ? new Date(data.timestamp).toLocaleString(undefined, {
+            dateStyle: 'medium', timeStyle: 'short'
+          })
+        : '';
+      document.getElementById('subtitle').innerHTML =
+        `Commit <code>${sha}</code> &middot; ${ts}`;
+    }
+
+    function renderDashboard(data) {
+      const exps = data.experiments;
+      const contentEl = document.getElementById('content');
+
+      contentEl.innerHTML = `
+        <div class="section">
+          <h2>SDR by Experiment</h2>
+          <div class="chart-container">
+            <canvas id="sdrChart"></canvas>
+          </div>
+        </div>
+
+        <div class="section">
+          <h2>Inference Time</h2>
+          <div class="chart-container">
+            <canvas id="timeChart"></canvas>
+          </div>
+        </div>
+
+        <div class="section" id="leakageSection" style="display:none;">
+          <h2>Reconstruction Leakage</h2>
+          <div id="leakageContent"></div>
+        </div>
+
+        <div class="section">
+          <h2>Summary</h2>
+          <div class="table-wrapper">
+            <table id="summaryTable">
+              <thead>
+                <tr>
+                  <th data-col="name">Name</th>
+                  <th data-col="vocals">Vocals SDR</th>
+                  <th data-col="drums">Drums SDR</th>
+                  <th data-col="bass">Bass SDR</th>
+                  <th data-col="other">Other SDR</th>
+                  <th data-col="mean">Mean SDR</th>
+                  <th data-col="time">Time (ms)</th>
+                </tr>
+              </thead>
+              <tbody id="summaryBody"></tbody>
+            </table>
+          </div>
+        </div>
+      `;
+
+      renderSdrChart(exps);
+      renderTimeChart(exps);
+      renderSummaryTable(exps);
+      renderLeakage(exps);
+    }
+
+    // --- SDR Chart ---
+    function renderSdrChart(exps) {
+      const labels = exps.map(e => e.name);
+      const datasets = STEM_ORDER.map(stem => ({
+        label: stem.charAt(0).toUpperCase() + stem.slice(1),
+        data: exps.map(e => {
+          const sdr = e.metrics?.sdr || e.sdr || {};
+          return sdr[stem] != null ? parseFloat(sdr[stem].toFixed(2)) : null;
+        }),
+        backgroundColor: COLORS[stem],
+        borderColor: COLORS[stem],
+        borderWidth: 1,
+        borderRadius: 3,
+      }));
+
+      new Chart(document.getElementById('sdrChart'), {
+        type: 'bar',
+        data: { labels, datasets },
+        options: {
+          responsive: true,
+          maintainAspectRatio: true,
+          plugins: {
+            legend: {
+              position: 'top',
+              labels: { usePointStyle: true, pointStyle: 'rectRounded', padding: 16 }
+            },
+            tooltip: {
+              callbacks: {
+                label: ctx => `${ctx.dataset.label}: ${ctx.parsed.y?.toFixed(2) ?? 'N/A'} dB`
+              }
+            }
+          },
+          scales: {
+            y: {
+              title: { display: true, text: 'SDR (dB)' },
+              grid: { color: '#1a1a26' }
+            },
+            x: {
+              grid: { display: false }
+            }
+          }
+        }
+      });
+    }
+
+    // --- Timing Chart ---
+    function renderTimeChart(exps) {
+      const sorted = [...exps].sort((a, b) => {
+        const tA = a.timing?.total_ms ?? a.total_ms ?? 0;
+        const tB = b.timing?.total_ms ?? b.total_ms ?? 0;
+        return tB - tA;
+      });
+
+      new Chart(document.getElementById('timeChart'), {
+        type: 'bar',
+        data: {
+          labels: sorted.map(e => e.name),
+          datasets: [{
+            label: 'Total (ms)',
+            data: sorted.map(e => e.timing?.total_ms ?? e.total_ms ?? 0),
+            backgroundColor: sorted.map((_, i) => {
+              const t = i / Math.max(sorted.length - 1, 1);
+              return t < 0.5 ? '#ff2d78' : '#00e5ff';
+            }),
+            borderRadius: 3,
+          }]
+        },
+        options: {
+          indexAxis: 'y',
+          responsive: true,
+          maintainAspectRatio: true,
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              callbacks: {
+                label: ctx => `${ctx.parsed.x.toLocaleString()} ms`
+              }
+            }
+          },
+          scales: {
+            x: {
+              title: { display: true, text: 'Time (ms)' },
+              grid: { color: '#1a1a26' }
+            },
+            y: {
+              grid: { display: false }
+            }
+          }
+        }
+      });
+    }
+
+    // --- Summary Table ---
+    function renderSummaryTable(exps) {
+      const tbody = document.getElementById('summaryBody');
+      const rows = exps.map(e => {
+        const sdr = e.metrics?.sdr || e.sdr || {};
+        const vals = STEM_ORDER.map(s => sdr[s] != null ? sdr[s] : null);
+        const validVals = vals.filter(v => v != null);
+        const mean = validVals.length > 0
+          ? validVals.reduce((a, b) => a + b, 0) / validVals.length
+          : null;
+        const time = e.timing?.total_ms ?? e.total_ms ?? null;
+        return {
+          name: e.name,
+          vocals: vals[0],
+          drums: vals[1],
+          bass: vals[2],
+          other: vals[3],
+          mean,
+          time,
+        };
+      });
+
+      // Find best values per column
+      const bestIdx = {};
+      ['vocals', 'drums', 'bass', 'other', 'mean'].forEach(col => {
+        let best = -Infinity;
+        rows.forEach(r => { if (r[col] != null && r[col] > best) best = r[col]; });
+        bestIdx[col] = best;
+      });
+      const bestTime = Math.min(...rows.filter(r => r.time != null).map(r => r.time));
+
+      function renderRows(data) {
+        tbody.innerHTML = data.map(r => `
+          <tr>
+            <td class="name-cell">${r.name}</td>
+            <td class="${r.vocals === bestIdx.vocals ? 'best' : ''}">${fmt(r.vocals)}</td>
+            <td class="${r.drums === bestIdx.drums ? 'best' : ''}">${fmt(r.drums)}</td>
+            <td class="${r.bass === bestIdx.bass ? 'best' : ''}">${fmt(r.bass)}</td>
+            <td class="${r.other === bestIdx.other ? 'best' : ''}">${fmt(r.other)}</td>
+            <td class="${r.mean === bestIdx.mean ? 'best' : ''}">${fmt(r.mean)}</td>
+            <td class="${r.time === bestTime ? 'best' : ''}">${r.time != null ? r.time.toLocaleString() : '-'}</td>
+          </tr>
+        `).join('');
+      }
+
+      renderRows(rows);
+
+      // Sortable headers
+      let sortCol = null;
+      let sortDir = 'desc';
+      document.querySelectorAll('#summaryTable thead th').forEach(th => {
+        th.addEventListener('click', () => {
+          const col = th.dataset.col;
+          if (sortCol === col) {
+            sortDir = sortDir === 'asc' ? 'desc' : 'asc';
+          } else {
+            sortCol = col;
+            sortDir = col === 'name' ? 'asc' : 'desc';
+          }
+
+          document.querySelectorAll('#summaryTable thead th').forEach(h => {
+            h.classList.remove('sorted-asc', 'sorted-desc');
+          });
+          th.classList.add(sortDir === 'asc' ? 'sorted-asc' : 'sorted-desc');
+
+          const sorted = [...rows].sort((a, b) => {
+            const aVal = a[col], bVal = b[col];
+            if (aVal == null && bVal == null) return 0;
+            if (aVal == null) return 1;
+            if (bVal == null) return -1;
+            if (typeof aVal === 'string') {
+              return sortDir === 'asc'
+                ? aVal.localeCompare(bVal)
+                : bVal.localeCompare(aVal);
+            }
+            return sortDir === 'asc' ? aVal - bVal : bVal - aVal;
+          });
+          renderRows(sorted);
+        });
+      });
+    }
+
+    // --- Leakage ---
+    function renderLeakage(exps) {
+      const withLeakage = exps.filter(e =>
+        (e.metrics?.reconstruction_error != null) || (e.reconstruction_error != null)
+      );
+      if (withLeakage.length === 0) return;
+
+      document.getElementById('leakageSection').style.display = '';
+      const container = document.getElementById('leakageContent');
+      container.innerHTML = withLeakage.map(e => {
+        const err = e.metrics?.reconstruction_error ?? e.reconstruction_error;
+        const absErr = Math.abs(err);
+        let cls = 'leakage-good';
+        let label = 'Excellent';
+        if (absErr > 0.01) { cls = 'leakage-warn'; label = 'Acceptable'; }
+        if (absErr > 0.1) { cls = 'leakage-bad'; label = 'High'; }
+        return `
+          <div style="display:inline-flex;align-items:center;gap:0.75rem;margin:0.4rem 0.5rem;">
+            <span style="color:var(--text-secondary);font-size:0.85rem;">${e.name}:</span>
+            <span class="leakage-badge ${cls}">${err.toExponential(2)} (${label})</span>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // --- Helpers ---
+    function fmt(val) {
+      return val != null ? val.toFixed(2) : '-';
+    }
+
+    // --- Boot ---
+    document.addEventListener('DOMContentLoaded', init);
+  </script>
+</body>
+</html>

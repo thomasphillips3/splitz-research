@@ -1,0 +1,68 @@
+version: 1
+test_audio: synthetic  # "synthetic" or path to WAV
+model_cdn: https://thomasphillips3.github.io/splitz-research/models
+
+experiments:
+  # --- Core mask strategies ---
+  - name: wiener-p2
+    wiener_power: 2.0
+    use_wiener: true
+    chunk_seconds: 10
+    overlap_seconds: 0.5
+
+  - name: softmask
+    wiener_power: 1.0
+    use_wiener: true
+    chunk_seconds: 10
+    overlap_seconds: 0.5
+
+  - name: ratio-mask
+    wiener_power: 1.0
+    use_wiener: false
+    chunk_seconds: 10
+    overlap_seconds: 0.5
+
+  - name: sharp-p3
+    wiener_power: 3.0
+    use_wiener: true
+    chunk_seconds: 10
+    overlap_seconds: 0.5
+
+  # --- Chunk size sweep ---
+  - name: chunk-5s
+    wiener_power: 2.0
+    use_wiener: true
+    chunk_seconds: 5
+    overlap_seconds: 0.5
+
+  - name: chunk-15s
+    wiener_power: 2.0
+    use_wiener: true
+    chunk_seconds: 15
+    overlap_seconds: 0.5
+
+  - name: chunk-30s
+    wiener_power: 2.0
+    use_wiener: true
+    chunk_seconds: 30
+    overlap_seconds: 0.5
+
+  # --- Overlap sweep ---
+  - name: overlap-025
+    wiener_power: 2.0
+    use_wiener: true
+    chunk_seconds: 10
+    overlap_seconds: 0.25
+
+  - name: overlap-100
+    wiener_power: 2.0
+    use_wiener: true
+    chunk_seconds: 10
+    overlap_seconds: 1.0
+
+  # --- High sharpness ---
+  - name: wiener-p4
+    wiener_power: 4.0
+    use_wiener: true
+    chunk_seconds: 10
+    overlap_seconds: 0.5

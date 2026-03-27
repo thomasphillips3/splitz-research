@@ -1,0 +1,118 @@
+name: Benchmark
+on:
+  push:
+    branches: [main]
+    paths: ['benchmark/**', 'configs/**', 'requirements.txt']
+  workflow_dispatch:
+    inputs:
+      config:
+        description: 'Config file to use'
+        default: 'configs/ci.yaml'
+        type: choice
+        options:
+          - configs/ci.yaml
+          - configs/default.yaml
+
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.matrix.outputs.experiments }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Generate matrix from config
+        id: matrix
+        run: |
+          pip install pyyaml
+          python -c "
+          import yaml, json
+          config = yaml.safe_load(open('${{ inputs.config || 'configs/ci.yaml' }}'))
+          names = [e['name'] for e in config['experiments']]
+          print(f'experiments={json.dumps(names)}')
+          " >> "$GITHUB_OUTPUT"
+
+  run-experiment:
+    needs: prepare
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    strategy:
+      matrix:
+        experiment: ${{ fromJson(needs.prepare.outputs.matrix) }}
+      fail-fast: false
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+          cache-dependency-path: requirements.txt
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Cache ONNX models
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/splitz-research/models
+          key: onnx-models-fp16-v1
+      - name: Run experiment
+        run: |
+          python -m benchmark.cli \
+            --config ${{ inputs.config || 'configs/ci.yaml' }} \
+            --experiment "${{ matrix.experiment }}" \
+            --output "results/${{ matrix.experiment }}.json"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: result-${{ matrix.experiment }}
+          path: results/${{ matrix.experiment }}.json
+          retention-days: 90
+
+  publish:
+    needs: run-experiment
+    if: always()
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: gh-pages
+          fetch-depth: 1
+      - uses: actions/download-artifact@v4
+        with:
+          path: _artifacts
+          pattern: result-*
+      - name: Aggregate results
+        run: |
+          mkdir -p results
+          for dir in _artifacts/result-*/; do
+            cp "$dir"/*.json results/ 2>/dev/null || true
+          done
+          python3 -c "
+          import json, glob, datetime
+          results = []
+          for f in sorted(glob.glob('results/*.json')):
+              try:
+                  results.append(json.load(open(f)))
+              except: pass
+          combined = {
+              'timestamp': datetime.datetime.utcnow().isoformat() + 'Z',
+              'run_id': '${{ github.run_id }}',
+              'commit': '${{ github.sha }}',
+              'experiments': results
+          }
+          with open('results/latest.json', 'w') as f:
+              json.dump(combined, f, indent=2)
+          "
+      - name: Copy dashboard from main
+        run: |
+          git fetch origin main --depth=1
+          git checkout origin/main -- dashboard/
+          cp dashboard/* . 2>/dev/null || true
+      - name: Deploy to Pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: .
+          keep_files: true

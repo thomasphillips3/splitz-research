@@ -1,0 +1,28 @@
+version: 1
+test_audio: synthetic  # "synthetic" or path to WAV
+model_cdn: https://thomasphillips3.github.io/splitz-research/models
+
+experiments:
+  - name: wiener-p2
+    wiener_power: 2.0
+    use_wiener: true
+    chunk_seconds: 10
+    overlap_seconds: 0.5
+
+  - name: softmask
+    wiener_power: 1.0
+    use_wiener: true
+    chunk_seconds: 10
+    overlap_seconds: 0.5
+
+  - name: ratio-mask
+    wiener_power: 1.0
+    use_wiener: false
+    chunk_seconds: 10
+    overlap_seconds: 0.5
+
+  - name: sharp-p3
+    wiener_power: 3.0
+    use_wiener: true
+    chunk_seconds: 10
+    overlap_seconds: 0.5
