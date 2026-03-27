@@ -105,14 +105,20 @@ jobs:
           with open('results/latest.json', 'w') as f:
               json.dump(combined, f, indent=2)
           "
-      - name: Copy dashboard from main
+      - name: Build deploy directory
         run: |
+          mkdir -p _deploy/results _deploy/models
+          # Copy results
+          cp results/*.json _deploy/results/
+          # Copy existing models from gh-pages
+          cp models/*.onnx _deploy/models/ 2>/dev/null || true
+          cp models/manifest.json _deploy/models/ 2>/dev/null || true
+          # Copy dashboard from main branch
           git fetch origin main --depth=1
           git checkout origin/main -- dashboard/
-          cp dashboard/* . 2>/dev/null || true
+          cp dashboard/index.html _deploy/index.html
       - name: Deploy to Pages
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: .
-          keep_files: true
+          publish_dir: _deploy
