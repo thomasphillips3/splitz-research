@@ -1,0 +1,70 @@
+{
+  "experiment": "sharp-p3",
+  "config": {
+    "use_wiener": true,
+    "wiener_power": 3.0,
+    "chunk_seconds": 10.0,
+    "overlap_seconds": 0.5,
+    "quantization": "fp16"
+  },
+  "audio": {
+    "source": "synthetic",
+    "channels": 2,
+    "samples": 661500,
+    "duration_seconds": 15.0,
+    "sample_rate": 44100
+  },
+  "timings": {
+    "load_audio_ms": 0.0,
+    "model_load_ms": 3145.5537890000046,
+    "inference_total_ms": 9106.150596999996,
+    "inference_per_chunk_ms": 4553.075298499998,
+    "total_ms": 13357.225352000001
+  },
+  "metrics": {
+    "vocals": {
+      "energy_ratio": 0.38081026878631513,
+      "sdr": 3.2570398354849845,
+      "sir": Infinity,
+      "sar": 3.2570398354849845
+    },
+    "drums": {
+      "energy_ratio": 0.0018901099083586447,
+      "sdr": -4.3912823303121575,
+      "sir": Infinity,
+      "sar": -4.3912823303121575
+    },
+    "bass": {
+      "energy_ratio": 0.39685762857102724,
+      "sdr": 13.84098895069042,
+      "sir": Infinity,
+      "sar": 13.84098895069042
+    },
+    "other": {
+      "energy_ratio": 0.06641995069887147,
+      "sdr": 0.5472896026365979,
+      "sir": Infinity,
+      "sar": 0.5472896026365979
+    },
+    "cross_stem_leakage": {
+      "bass/drums": 0.000606553163442963,
+      "bass/other": 0.01907214353906862,
+      "bass/vocals": 0.0038416701419670914,
+      "drums/other": 0.015559684362329566,
+      "drums/vocals": 0.010330152237111595,
+      "other/vocals": 0.04202215092754115
+    },
+    "reconstruction_error": 0.31975149979323686
+  },
+  "n_chunks": 2,
+  "metadata": {
+    "timestamp": "2026-03-27T05:39:41.434298+00:00",
+    "platform": {
+      "system": "Linux",
+      "release": "6.14.0-1017-azure",
+      "machine": "x86_64",
+      "python": "3.11.15"
+    },
+    "benchmark_version": "1.0.0"
+  }
+}
