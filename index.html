@@ -284,25 +284,60 @@
     Chart.defaults.font.family = "'SF Mono', 'Fira Code', monospace";
     Chart.defaults.font.size = 11;
 
+    // --- Flatten nested experiment runs into a flat array ---
+    function flattenExperiments(obj) {
+      if (!obj) return [];
+      if (Array.isArray(obj)) return obj.flatMap(flattenExperiments);
+      if (obj.experiment && obj.config) return [obj];
+      if (obj.experiments) return flattenExperiments(obj.experiments);
+      return [];
+    }
+
+    // --- Normalize experiment object to consistent shape ---
+    function normalize(e) {
+      const m = e.metrics || {};
+      const sdr = {};
+      STEM_ORDER.forEach(s => { sdr[s] = m[s]?.sdr ?? null; });
+      const recon = m.reconstruction_error;
+      return {
+        name: e.experiment || e.name || 'unknown',
+        sdr,
+        time: e.timings?.total_ms ?? e.timing?.total_ms ?? null,
+        reconstruction_error: typeof recon === 'number' ? recon : recon?.mean ?? null,
+      };
+    }
+
+    // --- Deduplicate: keep latest per experiment name ---
+    function dedup(exps) {
+      const map = new Map();
+      exps.forEach(e => map.set(e.name, e));
+      return [...map.values()];
+    }
+
     // --- Main ---
     async function init() {
       let data;
       try {
         const resp = await fetch('results/latest.json');
         if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-        data = await resp.json();
+        // Handle non-standard JSON values (Infinity, NaN) from Python output
+        const text = await resp.text();
+        data = JSON.parse(text.replace(/\bInfinity\b/g, '1e308').replace(/\bNaN\b/g, 'null'));
       } catch (err) {
         showEmpty();
         return;
       }
 
-      if (!data.experiments || data.experiments.length === 0) {
+      const raw = flattenExperiments(data);
+      const exps = dedup(raw.map(normalize));
+
+      if (exps.length === 0) {
         showEmpty();
         return;
       }
 
       updateSubtitle(data);
-      renderDashboard(data);
+      renderDashboard({ experiments: exps });
     }
 
     function showEmpty() {
@@ -384,8 +419,8 @@
       const datasets = STEM_ORDER.map(stem => ({
         label: stem.charAt(0).toUpperCase() + stem.slice(1),
         data: exps.map(e => {
-          const sdr = e.metrics?.sdr || e.sdr || {};
-          return sdr[stem] != null ? parseFloat(sdr[stem].toFixed(2)) : null;
+          const val = e.sdr?.[stem];
+          return val != null ? parseFloat(val.toFixed(2)) : null;
         }),
         backgroundColor: COLORS[stem],
         borderColor: COLORS[stem],
@@ -425,11 +460,7 @@
 
     // --- Timing Chart ---
     function renderTimeChart(exps) {
-      const sorted = [...exps].sort((a, b) => {
-        const tA = a.timing?.total_ms ?? a.total_ms ?? 0;
-        const tB = b.timing?.total_ms ?? b.total_ms ?? 0;
-        return tB - tA;
-      });
+      const sorted = [...exps].sort((a, b) => (b.time ?? 0) - (a.time ?? 0));
 
       new Chart(document.getElementById('timeChart'), {
         type: 'bar',
@@ -437,7 +468,7 @@
           labels: sorted.map(e => e.name),
           datasets: [{
             label: 'Total (ms)',
-            data: sorted.map(e => e.timing?.total_ms ?? e.total_ms ?? 0),
+            data: sorted.map(e => e.time ?? 0),
             backgroundColor: sorted.map((_, i) => {
               const t = i / Math.max(sorted.length - 1, 1);
               return t < 0.5 ? '#ff2d78' : '#00e5ff';
@@ -474,13 +505,11 @@
     function renderSummaryTable(exps) {
       const tbody = document.getElementById('summaryBody');
       const rows = exps.map(e => {
-        const sdr = e.metrics?.sdr || e.sdr || {};
-        const vals = STEM_ORDER.map(s => sdr[s] != null ? sdr[s] : null);
+        const vals = STEM_ORDER.map(s => e.sdr?.[s] ?? null);
         const validVals = vals.filter(v => v != null);
         const mean = validVals.length > 0
           ? validVals.reduce((a, b) => a + b, 0) / validVals.length
           : null;
-        const time = e.timing?.total_ms ?? e.total_ms ?? null;
         return {
           name: e.name,
           vocals: vals[0],
@@ -488,7 +517,7 @@
           bass: vals[2],
           other: vals[3],
           mean,
-          time,
+          time: e.time,
         };
       });
 
@@ -554,15 +583,13 @@
 
     // --- Leakage ---
     function renderLeakage(exps) {
-      const withLeakage = exps.filter(e =>
-        (e.metrics?.reconstruction_error != null) || (e.reconstruction_error != null)
-      );
+      const withLeakage = exps.filter(e => e.reconstruction_error != null);
       if (withLeakage.length === 0) return;
 
       document.getElementById('leakageSection').style.display = '';
       const container = document.getElementById('leakageContent');
       container.innerHTML = withLeakage.map(e => {
-        const err = e.metrics?.reconstruction_error ?? e.reconstruction_error;
+        const err = e.reconstruction_error;
         const absErr = Math.abs(err);
         let cls = 'leakage-good';
         let label = 'Excellent';
